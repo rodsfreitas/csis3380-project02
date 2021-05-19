@@ -1,32 +1,7 @@
-/**
- * Function used to fetch the contacts from the original html
- */
-function getContacts() {
-    const contactList = Array.of(document.getElementsByClassName('contact-list')[0].children);
-    // console.log('contactList ->', contactList[0].children);
-    // contactList.map((item) => {
-    //     console.log('item ->', item)
-    //     item.prototype.getElementById()
-    // });
+// @rodsfreitas, in 18/may/2021
+const CONTACTS_PER_PAGE = 10;
 
-    const avatars = Array.from(document.getElementsByClassName("avatar"));
-    const names = Array.from(document.getElementsByTagName("h3"));
-    const emails = Array.from(document.getElementsByClassName("email"));
-    const joinedDates = Array.from(document.getElementsByClassName("date"));
-
-    const contacts = avatars.map((avatar, index) => {
-        return {
-            avatarURL: avatar.src,
-            name: names[index].textContent,
-            emails: emails[index].textContent,
-            joinDate: joinedDates[index].textContent
-        }
-    })
-
-    console.log('contacts ->', JSON.stringify(contacts));
-}
-
-const contacts = [
+const CONTACTS = [
     {
         "avatarURL": "https://randomuser.me/api/portraits/thumb/women/67.jpg",
         "name": "iboya vat",
@@ -300,12 +275,83 @@ const contacts = [
         "joinDate": "Joined 05/14/13"
     }]
 
-const renderPage = () => {
-    let currentPageIndex = 0;
-    const CONTACTS_PER_PAGE = 10;
-    let numPages =  Math.ceil(contacts.length / CONTACTS_PER_PAGE);
+/**
+ * Function used to fetch the contacts from the original html
+ */
+function getContacts() {
+    const avatars = Array.from(document.getElementsByClassName("avatar"));
+    const names = Array.from(document.getElementsByTagName("h3"));
+    const emails = Array.from(document.getElementsByClassName("email"));
+    const joinedDates = Array.from(document.getElementsByClassName("date"));
 
-    console.log('number of items ->', contacts.length, numPages);
+    const contacts = avatars.map((avatar, index) => {
+        return {
+            avatarURL: avatar.src,
+            name: names[index].textContent,
+            emails: emails[index].textContent,
+            joinDate: joinedDates[index].textContent
+        }
+    })
+
+    // console.log(JSON.stringify(contacts));
+}
+
+const createButtons = (amount, changePage) => {
+    const divWrapper = document.createElement('div');
+    divWrapper.className = 'pagination';
+
+    const liContacts = document.createElement('li');
+    divWrapper.appendChild(liContacts);
+
+    for (let i=0; i < amount; i++) {
+        const aPage = document.createElement('a')
+        aPage.innerHTML =`${i+1}`;
+        aPage.onclick = () => changePage(i);
+        aPage.id = `p${i}`
+        liContacts.appendChild(aPage);
+    }
+
+    document.getElementsByClassName("page")[0].appendChild(divWrapper);
+}
+
+function removeContacts() {
+    const contactList = document.getElementsByClassName("contact-list")[0];
+    Array
+        .from(contactList.children)
+        .forEach((child) => child.remove());
+}
+
+function renderContactsForPage(page, itemsPerPage) {
+    const contactList = document.getElementsByClassName("contact-list")[0];
+
+    CONTACTS
+        .slice(page * itemsPerPage, itemsPerPage * (page + 1 ))
+        .forEach((contact) => {
+            const liContact = document.createElement("li");
+            liContact.className='contact-item cf';
+            liContact.innerHTML = `
+                <div class="contact-details">
+                    <img class="avatar" src="${contact.avatarURL}">
+                    <h3>${contact.name}</h3>
+                    <span class="email">${contact.emails}</span>
+                </div>
+                <div class="joined-details">
+                   <span class="date">${contact.joinDate}</span>
+               </div>
+            `
+            contactList.appendChild(liContact);
+    })
+}
+
+function updatePage(page) {
+    removeContacts();
+    renderContactsForPage(page, CONTACTS_PER_PAGE)
+}
+
+const renderPage = () => {
+    let numPages =  Math.ceil(CONTACTS.length / CONTACTS_PER_PAGE);
+    createButtons(numPages, updatePage);
+    updatePage(0);
 }
 
 renderPage();
